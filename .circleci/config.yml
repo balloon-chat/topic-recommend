@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:latest
+    working_directory: /go/src/github.com/balloon-chat/topic-recommend
+    environment:
+      TEST_RESULTS: /tmp/test-results
+    steps:
+      - checkout
+      - restore_cache:
+          key: mod-{{ checksum "go.sum" }}
+      - run:
+          name: install dependencies
+          command: go get
+      - run:
+          name: unit test
+          command: go test -v ./...
+      - save_cache:
+          key: mod-{{ checksum "go.sum" }}
+          paths:
+            - $GOPATH/pkg/mod
+  deploy:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - checkout
+      - run:
+          name: gcloud configuration
+          command: |
+            echo $GCLOUD_SERVICE_KEY | base64 --decode > ${HOME}/gcloud-service-key.json
+            gcloud auth activate-service-account --key-file=${HOME}/gcloud-service-key.json
+            gcloud --quiet config set project ${GOOGLE_PROJECT_ID}
+      - run:
+          name: deploy
+          command:
+            gcloud functions deploy topic-recommend --region asia-northeast1 --entry-point RecommendTopics --runtime go113 --trigger-http --set-env-vars FIREBASE_DATABASE_URL=${FIREBASE_DATABASE_URL}
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - test
+      - deploy
