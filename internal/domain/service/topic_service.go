@@ -5,6 +5,7 @@ import (
 	"github.com/balloon-chat/topic-recommend/internal/domain/model"
 	"github.com/balloon-chat/topic-recommend/internal/domain/repository"
 	"github.com/balloon-chat/topic-recommend/internal/infrastructure/firebase"
+	"github.com/balloon-chat/topic-recommend/internal/infrastructure/firestore"
 	"sort"
 )
 
@@ -23,7 +24,7 @@ func NewTopicService(ctx context.Context) (*TopicService, error) {
 	if err != nil {
 		return nil, err
 	}
-	topicRepository, err := firebase.NewFirebaseTopicRepository(ctx)
+	topicRepository, err := firestore.NewFirestoreTopicRepository(ctx)
 	if err != nil {
 		return nil, err
 	}
