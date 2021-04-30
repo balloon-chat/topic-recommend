@@ -67,35 +67,20 @@ func (service *TopicService) GetPickupTopics() ([]*model.Topic, error) {
 	return result, nil
 }
 
-func (service *TopicService) GetNewestTopics() ([]*model.Topic, error) {
-	return service.topicRepository.GetTopicsOrderByCreatedAt()
-}
-
 func (service *TopicService) SaveRecommendTopics() (*model.RecommendTopics, error) {
 	pickup, err := service.GetPickupTopics()
 	if err != nil {
 		return nil, err
 	}
 
-	newest, err := service.GetNewestTopics()
-	if err != nil {
-		return nil, err
-	}
-
 	var pickupTopicIds []string
-	var newestTopicIds []string
 
 	for _, p := range pickup {
 		pickupTopicIds = append(pickupTopicIds, p.Id)
 	}
 
-	for _, n := range newest {
-		newestTopicIds = append(newestTopicIds, n.Id)
-	}
-
 	recommend := model.RecommendTopics{
 		Pickup: pickupTopicIds,
-		Newest: newestTopicIds,
 	}
 
 	err = service.recommendRepository.SaveRecommendTopics(recommend)

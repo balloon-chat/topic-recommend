@@ -73,21 +73,6 @@ func TestMain(m *testing.M) {
 	m.Run()
 }
 
-func TestTopicService_GetNewestTopics(t *testing.T) {
-	for i := 0; i < 10; i++ {
-		topicDB.data[strconv.Itoa(i)] = &model2.Topic{
-			Id:        strconv.Itoa(i),
-			CreatedAt: rand.Int(),
-		}
-	}
-	topics, _ := service.GetNewestTopics()
-	for i := 1; i < len(topics); i++ {
-		if topics[i-1].CreatedAt < topics[i].CreatedAt {
-			t.Fatal("topics must be sorted by createdAt")
-		}
-	}
-}
-
 func TestTopicService_GetPickupTopics(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		topic := &model2.Topic{
