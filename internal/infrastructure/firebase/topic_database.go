@@ -1,16 +1,15 @@
-package database
+package firebase
 
 import (
 	"context"
 	"firebase.google.com/go/v4/db"
 	"fmt"
-	"github.com/balloon-chat/topic-recommend/src/database/firebase"
-	"github.com/balloon-chat/topic-recommend/src/model"
+	model2 "github.com/balloon-chat/topic-recommend/internal/domain/model"
 	"time"
 )
 
 type TopicDatabase interface {
-	GetTopicsOrderByCreatedAt() ([]*model.Topic, error)
+	GetTopicsOrderByCreatedAt() ([]*model2.Topic, error)
 }
 
 type FirebaseTopicDatabase struct {
@@ -19,7 +18,7 @@ type FirebaseTopicDatabase struct {
 }
 
 func NewFirebaseTopicDatabase(ctx context.Context) (*FirebaseTopicDatabase, error) {
-	client, err := firebase.NewFirebaseDatabaseClient(ctx)
+	client, err := NewFirebaseDatabaseClient(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -30,16 +29,16 @@ func NewFirebaseTopicDatabase(ctx context.Context) (*FirebaseTopicDatabase, erro
 	}, nil
 }
 
-func (db *FirebaseTopicDatabase) GetTopicsOrderByCreatedAt() ([]*model.Topic, error) {
+func (db *FirebaseTopicDatabase) GetTopicsOrderByCreatedAt() ([]*model2.Topic, error) {
 	lastWeek := time.Now().Add(-7 * time.Hour * 24).Unix()
 	results, err := db.topicsRef.OrderByChild("createdAt").StartAt(lastWeek * 1000).LimitToFirst(100).GetOrdered(db.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error while querying topics: %v", err)
 	}
 
-	var topics []*model.Topic
+	var topics []*model2.Topic
 	for _, r := range results {
-		var topic model.Topic
+		var topic model2.Topic
 		if err := r.Unmarshal(&topic); err != nil {
 			return nil, fmt.Errorf("error while unmarshaling result: %v", err)
 		}

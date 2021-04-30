@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/balloon-chat/topic-recommend/src/model"
+	model2 "github.com/balloon-chat/topic-recommend/internal/domain/model"
 	"math/rand"
 	"sort"
 	"strconv"
@@ -10,7 +10,7 @@ import (
 )
 
 type fakeMessageDatabase struct {
-	data map[string][]model.Message
+	data map[string][]model2.Message
 }
 
 func (f fakeMessageDatabase) GetMessageCountOf(topicId string) (*int, error) {
@@ -23,11 +23,11 @@ func (f fakeMessageDatabase) GetMessageCountOf(topicId string) (*int, error) {
 }
 
 type fakeTopicDatabase struct {
-	data map[string]*model.Topic
+	data map[string]*model2.Topic
 }
 
-func (f fakeTopicDatabase) GetTopicsOrderByCreatedAt() ([]*model.Topic, error) {
-	var result []*model.Topic
+func (f fakeTopicDatabase) GetTopicsOrderByCreatedAt() ([]*model2.Topic, error) {
+	var result []*model2.Topic
 
 	for _, topic := range f.data {
 		result = append(result, topic)
@@ -41,20 +41,20 @@ func (f fakeTopicDatabase) GetTopicsOrderByCreatedAt() ([]*model.Topic, error) {
 }
 
 type fakeRecommendTopicDatabase struct {
-	data *model.RecommendTopics
+	data *model2.RecommendTopics
 }
 
-func (f fakeRecommendTopicDatabase) SaveRecommendTopics(recommend model.RecommendTopics) error {
+func (f fakeRecommendTopicDatabase) SaveRecommendTopics(recommend model2.RecommendTopics) error {
 	f.data = &recommend
 	return nil
 }
 
 var (
 	messageDB = fakeMessageDatabase{
-		data: make(map[string][]model.Message),
+		data: make(map[string][]model2.Message),
 	}
 	topicDB = fakeTopicDatabase{
-		data: make(map[string]*model.Topic),
+		data: make(map[string]*model2.Topic),
 	}
 	recommendDB = fakeRecommendTopicDatabase{
 		data: nil,
@@ -67,15 +67,15 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	messageDB.data = make(map[string][]model.Message)
-	topicDB.data = make(map[string]*model.Topic)
+	messageDB.data = make(map[string][]model2.Message)
+	topicDB.data = make(map[string]*model2.Topic)
 	recommendDB.data = nil
 	m.Run()
 }
 
 func TestTopicService_GetNewestTopics(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		topicDB.data[strconv.Itoa(i)] = &model.Topic{
+		topicDB.data[strconv.Itoa(i)] = &model2.Topic{
 			Id:        strconv.Itoa(i),
 			CreatedAt: rand.Int(),
 		}
@@ -90,12 +90,12 @@ func TestTopicService_GetNewestTopics(t *testing.T) {
 
 func TestTopicService_GetPickupTopics(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		topic := &model.Topic{
+		topic := &model2.Topic{
 			Id:        strconv.Itoa(i),
 			CreatedAt: rand.Int(),
 		}
 		topicDB.data[strconv.Itoa(i)] = topic
-		messageDB.data[topic.Id] = make([]model.Message, i)
+		messageDB.data[topic.Id] = make([]model2.Message, i)
 	}
 
 	topics, _ := service.GetPickupTopics()

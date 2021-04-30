@@ -1,11 +1,10 @@
-package database
+package firebase
 
 import (
 	"context"
 	"firebase.google.com/go/v4/db"
 	"fmt"
-	"github.com/balloon-chat/topic-recommend/src/database/firebase"
-	"github.com/balloon-chat/topic-recommend/src/model"
+	model2 "github.com/balloon-chat/topic-recommend/internal/domain/model"
 )
 
 type MessageDatabase interface {
@@ -18,7 +17,7 @@ type FirebaseMessageDatabase struct {
 }
 
 func NewFirebaseMessageDatabase(ctx context.Context) (*FirebaseMessageDatabase, error) {
-	client, err := firebase.NewFirebaseDatabaseClient(ctx)
+	client, err := NewFirebaseDatabaseClient(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +29,7 @@ func NewFirebaseMessageDatabase(ctx context.Context) (*FirebaseMessageDatabase, 
 }
 
 func (db FirebaseMessageDatabase) GetMessageCountOf(topicId string) (*int, error) {
-	var messages map[string]model.Message
+	var messages map[string]model2.Message
 	err := db.messagesRef.Child(topicId).Get(db.ctx, &messages)
 	if err != nil {
 		return nil, fmt.Errorf("error while getting data: %v", err)

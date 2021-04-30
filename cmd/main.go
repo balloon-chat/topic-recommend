@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/balloon-chat/topic-recommend/src/service"
+	service2 "github.com/balloon-chat/topic-recommend/internal/domain/service"
 	"log"
 	"strings"
 )
 
 func main() {
 	ctx := context.Background()
-	s, err := service.NewTopicService(ctx)
+	s, err := service2.NewTopicService(ctx)
 	if err != nil {
 		log.Fatalln(err)
 	}
