@@ -2,51 +2,53 @@ package service
 
 import (
 	"context"
-	model2 "github.com/balloon-chat/topic-recommend/internal/domain/model"
+	"github.com/balloon-chat/topic-recommend/internal/domain/model"
+	"github.com/balloon-chat/topic-recommend/internal/domain/repository"
 	"github.com/balloon-chat/topic-recommend/internal/infrastructure/firebase"
 	"sort"
 )
 
 type TopicService struct {
-	messageDatabase   firebase.MessageDatabase
-	recommendDatabase firebase.RecommendTopicDatabase
-	topicDatabase     firebase.TopicDatabase
+	messageRepository   repository.MessageDatabase
+	recommendRepository repository.RecommendTopicDatabase
+	topicRepository     repository.TopicDatabase
 }
 
 func NewTopicService(ctx context.Context) (*TopicService, error) {
-	messageDB, err := firebase.NewFirebaseMessageDatabase(ctx)
+	messageRepository, err := firebase.NewFirebaseMessageRepository(ctx)
 	if err != nil {
 		return nil, err
 	}
-	recommendDB, err := firebase.NewFirebaseRecommendTopicDatabase(ctx)
+	recommendTopicRepository, err := firebase.NewFirebaseRecommendTopicRepository(ctx)
 	if err != nil {
 		return nil, err
 	}
-	topicDB, err := firebase.NewFirebaseTopicDatabase(ctx)
+	topicRepository, err := firebase.NewFirebaseTopicRepository(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &TopicService{
-		messageDatabase:   messageDB,
-		recommendDatabase: recommendDB,
-		topicDatabase:     topicDB,
-	}, nil
+	service := &TopicService{
+		messageRepository:   messageRepository,
+		recommendRepository: recommendTopicRepository,
+		topicRepository:     topicRepository,
+	}
+	return service, nil
 }
 
-func (service *TopicService) GetPickupTopics() ([]*model2.Topic, error) {
-	topics, err := service.topicDatabase.GetTopicsOrderByCreatedAt()
+func (service *TopicService) GetPickupTopics() ([]*model.Topic, error) {
+	topics, err := service.topicRepository.GetTopicsOrderByCreatedAt()
 	if err != nil {
 		return nil, err
 	}
 
-	var data []*model2.TopicData
+	var data []*model.TopicData
 	for _, topic := range topics {
-		count, err := service.messageDatabase.GetMessageCountOf(topic.Id)
+		count, err := service.messageRepository.GetMessageCountOf(topic.Id)
 		if err != nil {
 			return nil, err
 		}
-		data = append(data, &model2.TopicData{
+		data = append(data, &model.TopicData{
 			Topic:        *topic,
 			MessageCount: *count,
 		})
@@ -56,7 +58,7 @@ func (service *TopicService) GetPickupTopics() ([]*model2.Topic, error) {
 		return data[i].MessageCount > data[j].MessageCount
 	})
 
-	var result []*model2.Topic
+	var result []*model.Topic
 	for _, d := range data {
 		result = append(result, &d.Topic)
 	}
@@ -64,11 +66,11 @@ func (service *TopicService) GetPickupTopics() ([]*model2.Topic, error) {
 	return result, nil
 }
 
-func (service *TopicService) GetNewestTopics() ([]*model2.Topic, error) {
-	return service.topicDatabase.GetTopicsOrderByCreatedAt()
+func (service *TopicService) GetNewestTopics() ([]*model.Topic, error) {
+	return service.topicRepository.GetTopicsOrderByCreatedAt()
 }
 
-func (service *TopicService) SaveRecommendTopics() (*model2.RecommendTopics, error) {
+func (service *TopicService) SaveRecommendTopics() (*model.RecommendTopics, error) {
 	pickup, err := service.GetPickupTopics()
 	if err != nil {
 		return nil, err
@@ -90,12 +92,12 @@ func (service *TopicService) SaveRecommendTopics() (*model2.RecommendTopics, err
 		newestTopicIds = append(newestTopicIds, n.Id)
 	}
 
-	recommend := model2.RecommendTopics{
+	recommend := model.RecommendTopics{
 		Pickup: pickupTopicIds,
 		Newest: newestTopicIds,
 	}
 
-	err = service.recommendDatabase.SaveRecommendTopics(recommend)
+	err = service.recommendRepository.SaveRecommendTopics(recommend)
 	if err != nil {
 		return nil, err
 	}

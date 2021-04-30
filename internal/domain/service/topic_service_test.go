@@ -60,9 +60,9 @@ var (
 		data: nil,
 	}
 	service = TopicService{
-		messageDatabase:   &messageDB,
-		topicDatabase:     &topicDB,
-		recommendDatabase: &recommendDB,
+		messageRepository:   &messageDB,
+		topicRepository:     &topicDB,
+		recommendRepository: &recommendDB,
 	}
 )
 
