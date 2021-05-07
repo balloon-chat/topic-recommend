@@ -42,6 +42,4 @@ func UpdateRecommendTopics(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }

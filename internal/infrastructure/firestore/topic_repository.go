@@ -11,6 +11,8 @@ import (
 
 const (
 	topicCollectionKey = "topics"
+	createdAtKey       = "createdAt"
+	isPrivateKey       = "isPrivate"
 )
 
 type FirestoreTopicRepository struct {
@@ -32,7 +34,7 @@ func NewFirestoreTopicRepository(ctx context.Context) (*FirestoreTopicRepository
 
 func (db *FirestoreTopicRepository) GetTopicsOrderByCreatedAt() ([]*model.Topic, error) {
 	lastWeek := time.Now().Add(-7 * time.Hour * 24).Unix()
-	query := db.topicsCollection.Where("createdAt", ">=", lastWeek).OrderBy("createdAt", firestore.Desc)
+	query := db.topicsCollection.Where(createdAtKey, ">=", lastWeek).Where(isPrivateKey, "==", false).OrderBy("createdAt", firestore.Desc)
 	docItr := query.Documents(db.ctx)
 
 	var topics []*model.Topic
