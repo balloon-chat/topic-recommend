@@ -1,36 +1,31 @@
-package database
+package firebase
 
 import (
 	"context"
 	"firebase.google.com/go/v4/db"
 	"fmt"
-	"github.com/balloon-chat/topic-recommend/src/database/firebase"
-	"github.com/balloon-chat/topic-recommend/src/model"
+	"github.com/balloon-chat/topic-recommend/internal/domain/model"
 	"time"
 )
 
-type TopicDatabase interface {
-	GetTopicsOrderByCreatedAt() ([]*model.Topic, error)
-}
-
-type FirebaseTopicDatabase struct {
+type FirebaseTopicRepository struct {
 	ctx       context.Context
 	topicsRef *db.Ref
 }
 
-func NewFirebaseTopicDatabase(ctx context.Context) (*FirebaseTopicDatabase, error) {
-	client, err := firebase.NewFirebaseDatabaseClient(ctx)
+func NewFirebaseTopicRepository(ctx context.Context) (*FirebaseTopicRepository, error) {
+	client, err := NewFirebaseDatabaseClient(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &FirebaseTopicDatabase{
+	return &FirebaseTopicRepository{
 		ctx:       ctx,
 		topicsRef: client.NewRef("topics"),
 	}, nil
 }
 
-func (db *FirebaseTopicDatabase) GetTopicsOrderByCreatedAt() ([]*model.Topic, error) {
+func (db *FirebaseTopicRepository) GetTopicsOrderByCreatedAt() ([]*model.Topic, error) {
 	lastWeek := time.Now().Add(-7 * time.Hour * 24).Unix()
 	results, err := db.topicsRef.OrderByChild("createdAt").StartAt(lastWeek * 1000).LimitToFirst(100).GetOrdered(db.ctx)
 	if err != nil {
